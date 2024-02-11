@@ -1,22 +1,22 @@
 <template>
-  <div v-if="visible" class="card" :style="'color:' + deck[cardId][0]" v-html="deck[cardId][1]">
+  <div v-if="visible" class="card" :style="'color:' + deck[cardId][0]" v-html="deck[cardId][2] + deck[cardId][1]">
   </div>
   <div v-else class="card" style="background-color:rgb(160, 160, 160)" v-html="'x' + number">
   </div>
 </template>
 
 <script>
-import deck from './card.js'
+import card_info from './card.js'
 
 export default {
   name: 'GameCard',
   data () {
     return {
-      deck: deck
+      deck: card_info.deck
     }
   },
   props: {
-    cardId: String,
+    cardId: Number,
     visible: Boolean,
     number: Number
   }
@@ -30,5 +30,6 @@ export default {
   height: 40px;
   border: 2px grey solid;
   display: inline-block;
+  position: relative;
 }
 </style>

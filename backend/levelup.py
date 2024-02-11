@@ -11,16 +11,17 @@ LEVEL = 5
 COLOR = 6
 END = 7
 
-deal_wait_time = 1
-wait_time = 10
+deal_wait_time = .2
+wait_time = .5
 
 class Game:
-    def __init__(self, dealer, dealer_level, deck):
+    def __init__(self, table, dealer, dealer_level):
+        self.table = table
         self.dealer = dealer
         self.level = dealer_level
         self.color = None
 
-        self.deck = deck
+        self.deck = Deck()
         self.deck.shuffle()
 
         self.bottom = []
@@ -37,7 +38,6 @@ class Game:
         self.announce_level()
         self.deal_cards()
         wait(wait_time, self.has_declared, self.default_declare)
-        self.announce_main_color()
 
         self.add_bottom_to_dealer()
         logging.info("Initial cards:")
@@ -68,13 +68,15 @@ class Game:
             self.announce_player_play()
             wait(wait_time, self.player_played, self.default_player_play)
 
-            self.current_player = -1
+            self.current_player = (self.current_player + 1) % 4
             self.announce_player_play()
 
             self.debug_show_round_cards()
 
             self.judge_round()
             self.announce_round_winner()
+
+            wait(1, None, None)
             cnt += 1
         
         logging.info("---------------")
@@ -97,10 +99,18 @@ class Game:
 
     def deal_card_to_player(self, player, card_id):
         self.cards[player].append(card_id)
-        self.tell(player, {
-            'verb': DRAW,
-            'card': card_id
-        })
+        for i in range(4):
+            if i == player:
+                self.tell(i, {
+                    'verb': DRAW,
+                    'player': player,
+                    'card': card_id
+                })
+            else:
+                self.tell(i, {
+                    'verb': DRAW,
+                    'player': player
+                })
 
     def declare(self, player, card_id):
         if card_id not in self.cards[player]:
@@ -113,7 +123,12 @@ class Game:
         self.anounce_main_color()
 
     def default_declare(self):
-        card = self.deck.card(50)
+        id = self.deck.order[50]
+        if id == 53 or id == 52:
+            id = self.deck.order[51]
+        if id == 53 or id == 52:
+            id = self.deck.order[52]
+        card = self.deck.card(id)
         self.color = card[0]
         self.announce_main_color()
 
@@ -260,10 +275,10 @@ class Game:
         })
 
     def announce(self, obj):
-        print("Announce:", obj)
+        self.announce_callback(self.table, obj)
 
     def tell(self, player, obj):
-        print("Tell player", player, ":", obj)
+        self.tell_callback(self.table, player, obj)
 
     def is_main_card(self, card_id):
         card = self.deck.card(card_id)
@@ -369,5 +384,5 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
     wait_time = 0
     deal_wait_time = 0
-    g = Game(0, '3', Deck())
+    g = Game(1, 0, '3')
     g.game_play()
