@@ -23,8 +23,7 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 .button {
-    width: 100px;
-    padding: 3px;
+    padding: 3px 10px;
     background-color: rgb(90, 90, 90);
     color: white;
     display: inline-block;

@@ -10,13 +10,16 @@ SCORE = 4
 LEVEL = 5
 COLOR = 6
 END = 7
+RECONNECT = 8
 
-deal_wait_time = .2
-wait_time = .5
+deal_wait_time = .25
+wait_time = 15
 
 class Game:
-    def __init__(self, table, dealer, dealer_level):
+    def __init__(self, table, is_bot, dealer, dealer_level):
         self.table = table
+        self.is_bot = is_bot
+
         self.dealer = dealer
         self.level = dealer_level
         self.color = None
@@ -34,39 +37,45 @@ class Game:
         self.score = 0
         self.round_score = 0
 
+        self.stage = 0
+
     def game_play(self):
+        self.stage = 1
+
         self.announce_level()
         self.deal_cards()
-        wait(wait_time, self.has_declared, self.default_declare)
+        wait(deal_wait_time, self.has_declared, self.default_declare)
+
+        self.stage = 2
 
         self.add_bottom_to_dealer()
-        logging.info("Initial cards:")
         self.debug_show_cards()
-        wait(wait_time, self.dealer_selected_bottom, self.default_select_bottom)
+        wait(.5 if self.is_bot[self.dealer] else wait_time, self.dealer_selected_bottom, self.default_select_bottom)
+
+        self.stage = 3
 
         cnt = 1
+        print(self.round_winner)
         while len(self.cards[self.round_winner]):
-            logging.info("---------------")
-            logging.info("Round " + str(cnt) + ".")
 
             self.debug_show_cards()
             self.round_cards = [None, None, None, None]
 
             self.current_player = self.round_winner
             self.announce_player_play()
-            wait(wait_time, self.player_played, self.default_player_play)
+            wait(.5 if self.is_bot[self.current_player] else wait_time, self.player_played, self.default_player_play)
 
             self.current_player = (self.current_player + 1) % 4
             self.announce_player_play()
-            wait(wait_time, self.player_played, self.default_player_play)
+            wait(.5 if self.is_bot[self.current_player] else wait_time, self.player_played, self.default_player_play)
 
             self.current_player = (self.current_player + 1) % 4
             self.announce_player_play()
-            wait(wait_time, self.player_played, self.default_player_play)
+            wait(.5 if self.is_bot[self.current_player] else wait_time, self.player_played, self.default_player_play)
 
             self.current_player = (self.current_player + 1) % 4
             self.announce_player_play()
-            wait(wait_time, self.player_played, self.default_player_play)
+            wait(.5 if self.is_bot[self.current_player] else wait_time, self.player_played, self.default_player_play)
 
             self.current_player = (self.current_player + 1) % 4
             self.announce_player_play()
@@ -79,7 +88,8 @@ class Game:
             wait(1, None, None)
             cnt += 1
         
-        logging.info("---------------")
+        self.stage = 4
+        
         self.bottom_scoring()
         self.announce_final_score()
         return self.score, self.is_dealer_team(self.round_winner)
@@ -87,6 +97,7 @@ class Game:
     def announce_level(self):
         self.announce({
             'verb': LEVEL,
+            'dealer': self.dealer,
             'level': self.level
         })
 
@@ -118,11 +129,20 @@ class Game:
             return
 
         card = self.deck.card(card_id)
-        if self.level == card[1]:
-            self.color = card[0]
-        self.anounce_main_color()
+        if self.level != card[1]:
+            self.tell(player, {'verb': REJECT})
+            return
+
+        if self.dealer == -1:
+            self.dealer = player
+            self.round_winner = player
+        self.color = card[0]
+        self.announce_main_color()
 
     def default_declare(self):
+        if self.dealer == -1:
+            self.dealer = 0
+            self.round_winner = 0
         id = self.deck.order[50]
         if id == 53 or id == 52:
             id = self.deck.order[51]
@@ -138,7 +158,8 @@ class Game:
     def announce_main_color(self):
         self.announce({
             'verb': COLOR,
-            'color': self.color
+            'color': self.color,
+            'dealer': self.dealer
         })
 
     def add_bottom_to_dealer(self):
@@ -152,6 +173,9 @@ class Game:
         return self.bottom != []
     
     def dealer_select_bottom(self, player, bottom):
+        if self.dealer_selected_bottom():
+            self.tell(player, {'verb': REJECT})
+            return
         if player != self.dealer:
             self.tell(player, {'verb': REJECT})
             return
@@ -193,16 +217,22 @@ class Game:
                 if any([self.is_main_card(card) for card in cards]):
                     self.tell(player, {'verb': REJECT})
                     return
-                colors = set([self.deck.color(card) for card in cards])
+                colors = set([self.deck.card(card)[0] for card in cards])
                 if len(colors) != 1:
                     self.tell(player, {'verb': REJECT})
                     return
+                for card in cards:
+                    for p in range(4):
+                        if any([c not in cards and c > card for c in self.cards_of_color(self.cards[p], card)]):
+                            self.tell(player, {'verb': REJECT})
+                            return
         else:
             # follow
             required = len(self.round_cards[self.round_winner])
             mark = self.round_cards[self.round_winner][0]
             if len(cards) != required:
                 self.tell(player, {'verb': REJECT})
+                return
             played = self.cards_of_color(cards, mark)
             owned = self.cards_of_color(self.cards[player], mark)
             if len(played) < required and len(played) < len(owned):
@@ -247,7 +277,7 @@ class Game:
     def announce_round_winner(self):
         self.announce({
             'verb': SCORE,
-            'winner': self.round_winner,
+            'round_winner': self.round_winner,
             'round_score': self.round_score,
             'total_score': self.score
         })
@@ -267,11 +297,50 @@ class Game:
         self.score += score * 2
 
     def announce_final_score(self):
+        winner = 0
+        level = 0
+        if (self.round_winner == (self.dealer + 1) % 4) or (self.round_winner == (self.dealer + 3) % 4):
+            winner = 1
+            level = 1
+        if self.score >= 40:
+            winner = 1
+            level += 1
+        if self.score >= 60:
+            level += 1
+        if self.score >= 80:
+            level += 1    
+        level = min(level, 3)
+
+        if winner == 0:
+            if self.score == 0:
+                level = 3
+            else:
+                level = 1
+
         self.announce({
             'verb': SCORE,
-            'winner': self.round_winner,
+            'round_winner': self.round_winner,
+            'winner': winner,
+            'level': level,
             'round_score': self.round_score,
-            'total_score': self.score
+            'total_score': self.score,
+            'bottom': self.bottom
+        })
+
+    def reconnect(self, player):
+        self.tell(player, {
+            'verb': RECONNECT,
+            'stage': self.stage,
+            'player': player,
+            'level': self.level,
+            'dealer': self.dealer,
+            'color': self.color,
+            'score': self.score,
+            'round_winner': self.round_winner,
+            'cards': self.cards[player],
+            'round_cards': self.round_cards,
+            'current_player': self.current_player,
+            'cards_count': [len(i) for i in self.cards]
         })
 
     def announce(self, obj):
@@ -384,5 +453,5 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
     wait_time = 0
     deal_wait_time = 0
-    g = Game(1, 0, '3')
+    g = Game(1, [True, True, True, True], 0, '3')
     g.game_play()
