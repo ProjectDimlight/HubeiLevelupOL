@@ -102,7 +102,8 @@ class Game:
         })
 
     def deal_cards(self):
-        t = self.dealer
+        # t = self.dealer
+        t = 0 if self.dealer == -1 else self.dealer
         for i in range(48):
             self.deal_card_to_player(t, self.deck.order[i])
             wait(deal_wait_time, None, None)

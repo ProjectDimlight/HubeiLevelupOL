@@ -1,9 +1,13 @@
+from gevent import monkey
+monkey.patch_all()
+
 from flask import Flask, render_template
 from flask_sock import Sock
 from flask_cors import CORS
 import json
 from levelup import *
 from threading import Thread
+from gevent.pywsgi import WSGIServer
 
 app = Flask("hubei level up", 
             static_url_path='', 
@@ -136,4 +140,10 @@ def echo_socket(ws):
         obj = json.loads(message)
         operation(ws, obj)
 
-app.run()
+# app.run()
+if __name__ == '__main__':
+    # Debug/Development
+    # app.run(debug=True, host="0.0.0.0", port="5000")
+    # Production
+    http_server = WSGIServer(('', 5000), app)
+    http_server.serve_forever()
