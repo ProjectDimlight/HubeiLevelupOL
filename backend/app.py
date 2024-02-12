@@ -94,7 +94,8 @@ def operation(ws, obj):
     else:
         table = users[user].table
         seat  = users[user].seat
-        if tables[table].game == None:
+        print(table, seat, obj)
+        if table == None or seat == None or tables[table].game == None:
             return
         if obj['verb'] == COLOR:
             tables[table].game.declare(seat, obj['card'])
