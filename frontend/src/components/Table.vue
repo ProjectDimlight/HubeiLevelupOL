@@ -165,7 +165,7 @@ export default {
       self.send({
         verb: SIT,
         username: self.username,
-        table: table,
+        table: self.table,
         seat: seat
       })
     },
