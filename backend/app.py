@@ -53,7 +53,7 @@ def operation(ws, obj):
             tables[obj['table']] = Table()
         if users[user].table != None:
             if users[user].seat != None:
-                if ables[users[user].table].game != None:
+                if tables[users[user].table].game != None:
                     announce(obj['table'], {
                         'verb': SIT,
                         'seats': tables[obj['table']].seats
@@ -62,8 +62,11 @@ def operation(ws, obj):
                     return
                 else:
                     tables[users[user].table].seats[users[user].seat] = None
+                    announce(obj['table'], {
+                        'verb': SIT,
+                        'seats': tables[obj['table']].seats
+                    })
             tables[users[user].table].view.remove(user)
-        
         users[user].table = obj['table']
         tables[users[user].table].view.add(user)
 
