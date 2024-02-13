@@ -51,17 +51,19 @@ def operation(ws, obj):
     if obj['verb'] == SIT:
         if obj['table'] not in tables:
             tables[obj['table']] = Table()
-        if users[user].table != None and users[user].seat != None:
-            if (tables[users[user].table].game):
-                announce(obj['table'], {
-                    'verb': SIT,
-                    'seats': tables[obj['table']].seats
-                })
-                tables[users[user].table].game.reconnect(users[user].seat)
-                return
-
-            tables[users[user].table].seats[users[user].seat] = None
+        if users[user].table != None:
+            if users[user].seat != None:
+                if ables[users[user].table].game != None:
+                    announce(obj['table'], {
+                        'verb': SIT,
+                        'seats': tables[obj['table']].seats
+                    })
+                    tables[users[user].table].game.reconnect(users[user].seat)
+                    return
+                else:
+                    tables[users[user].table].seats[users[user].seat] = None
             tables[users[user].table].view.remove(user)
+        
         users[user].table = obj['table']
         tables[users[user].table].view.add(user)
 
@@ -70,10 +72,12 @@ def operation(ws, obj):
             users[user].seat = obj['seat']
         else:
             users[user].seat = None
+            
         announce(obj['table'], {
             'verb': SIT,
             'seats': tables[obj['table']].seats
         })
+        
     elif obj['verb'] == READY:
         table = users[user].table
         if user not in tables[table].seats:
