@@ -62,7 +62,7 @@ def operation(ws, obj):
                     return
                 else:
                     tables[users[user].table].seats[users[user].seat] = None
-                    announce(users[user].table {
+                    announce(users[user].table, {
                         'verb': SIT,
                         'seats': tables[users[user].table].seats
                     })
