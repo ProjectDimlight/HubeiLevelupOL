@@ -51,7 +51,9 @@
           Color: <span v-if="color != -1" :style="'color:' + styles[color][0]"> {{styles[color][1]}} </span> <span v-else> ? </span><br/>
           Score: {{score}} <br/>
           <br/>
+          <br/>
           <span>{{info}}</span><br/>
+          <span v-if="time > 0">Time: {{time}}<br/></span>
           <Button :text="stages[stage]" :able="true" v-on:click="button()" style="width: 100px;" />
         </div>
       </td>
@@ -75,11 +77,15 @@
     </tr>
     </table>
   </div>
+
+  <Button v-on:click="readme_hidden = !readme_hidden" :able="true" text="?" style="position: fixed; left: 10px; top: 10px;"></Button>
+  <ReadMe :hidden="readme_hidden"> </ReadMe>
 </template>
 
 <script>
 import Card from './Card.vue'
 import Button from './Button.vue'
+import ReadMe from './Readme.vue'
 import card_info from './card.js'
 
 const SIT = 100
@@ -101,6 +107,10 @@ export default {
   },
   data () {
     return {
+      readme_hidden: true,
+      time: 0,
+      timer_time_out: -1,
+
       username: '',
       table: '',
       seats: [null, null, null, null],
@@ -229,6 +239,23 @@ export default {
       let obj = JSON.parse(msg.data)
       this.operation(obj)
     },
+    timer (t) {
+      this.cancel_timer()
+      if (t <= 0)
+        return
+      this.count_down(t)
+    },
+    count_down (t) {
+      let self = this
+      self.time = t
+      self.timer_time_out = setTimeout(() => {
+          self.count_down(t - 1)
+      }, 1000)
+    },
+    cancel_timer () {
+      this.time = 0
+      clearTimeout(this.timer_time_out)
+    },
     display (msg, disapper=true) {
       let self = this
       if (self.info_time_out != -1) {
@@ -257,6 +284,7 @@ export default {
         self.player = obj['player']
         self.level = card_info.levels.indexOf(obj['level'])
         self.dealer = obj['dealer']
+        console.log(obj['dealer'])
 
         self.color = obj['color'] == null ? -1 : card_info.colors.indexOf(obj['color'])
         self.score = obj['score']
@@ -289,6 +317,8 @@ export default {
         self.cards_count[obj['player']]++
       } else if (obj['verb'] == BOTTOM) {
         self.cards = self.cards.concat(obj['cards'])
+        self.display("Dealer select bottom cards.")
+        self.timer(obj['time'])
         self.stage = 2
       } else if (obj['verb'] == ACK) {
         self.cards = self.cards.filter(e => !obj['bottom'].includes(e))
@@ -296,6 +326,12 @@ export default {
         self.stage = 3
         self.round_cards = obj['round_cards']
         self.current_player = obj['current_player']
+        if (self.current_player == self.player && !obj['round_cards'][self.player]) {
+          self.display("Your turn.")
+          self.timer(obj['time'])
+        } else
+          self.cancel_timer()
+
         for (let i of self.round_cards)
           if (i)
             i.sort(self.cmp)
@@ -337,7 +373,8 @@ export default {
   },
   components: {
     Card,
-    Button
+    Button,
+    ReadMe
   }
 }
 </script>

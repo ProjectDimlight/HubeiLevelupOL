@@ -1,4 +1,13 @@
-# HubeiLevelupOL
+<template>
+  <pre style="background-color: rgb(220, 220, 220); margin: auto; padding: 20px; width: 80%; height:400px; position: fixed; left: 0; right: 0; top: 200px;">{{contents}}</pre>
+</template>
+
+<script>
+export default {
+  name: 'ReadMe',
+  data () {
+    return {
+      contents: `# HubeiLevelupOL
 
 ## 游戏说明
 
@@ -91,22 +100,21 @@
     - 已经被占用的座位会标注用户名
     - 点击Leave离开已经占用的座位
 - 输入庄家座位号（-1表示抢叫）和当前等级，点击Start开始游戏
+`
+    }
+  }
+}
+</script>
 
-## 部署
-
-- 前端：
-```
-cd frontend
-npm run build
-```
-
-- 部署后端：
-```
-cd ../backend
-python3 app.py
-```
-
-- 进入浏览器
-```
-host:5000
-```
+<!-- Add "scoped" attribute to limit CSS to this component only -->
+<style scoped>
+pre {
+  white-space: pre-wrap;       /* css-3 */
+  white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+  white-space: -pre-wrap;      /* Opera 4-6 */
+  white-space: -o-pre-wrap;    /* Opera 7 */
+  word-wrap: break-word;       /* Internet Explorer 5.5+ */
+  overflow-y: scroll;
+  text-align: left;
+}
+</style>

@@ -13,7 +13,7 @@ END = 7
 RECONNECT = 8
 
 deal_wait_time = .25
-wait_time = 15
+wait_time = 16
 
 class Game:
     def __init__(self, table, is_bot, dealer, dealer_level):
@@ -50,12 +50,11 @@ class Game:
 
         self.add_bottom_to_dealer()
         self.debug_show_cards()
-        wait(.5 if self.is_bot[self.dealer] else wait_time, self.dealer_selected_bottom, self.default_select_bottom)
+        wait(.5 if self.is_bot[self.dealer] else wait_time + 10, self.dealer_selected_bottom, self.default_select_bottom)
 
         self.stage = 3
 
         cnt = 1
-        print(self.round_winner)
         while len(self.cards[self.round_winner]):
 
             self.debug_show_cards()
@@ -85,7 +84,7 @@ class Game:
             self.judge_round()
             self.announce_round_winner()
 
-            wait(1, None, None)
+            wait(3, None, None)
             cnt += 1
         
         self.stage = 4
@@ -167,7 +166,8 @@ class Game:
         self.cards[self.dealer].extend(self.deck.order[48:54])
         self.tell(self.dealer, {
             'verb': BOTTOM,
-            'cards': self.deck.order[48:54]
+            'cards': self.deck.order[48:54],
+            'time': wait_time + 9
         })
 
     def dealer_selected_bottom(self):
@@ -199,7 +199,8 @@ class Game:
         self.announce({
             'verb': PLAY,
             'round_cards': self.round_cards,
-            'current_player': self.current_player
+            'current_player': self.current_player,
+            'time': wait_time - 1
         })
 
     def player_play(self, player, cards):
