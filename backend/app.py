@@ -62,9 +62,9 @@ def operation(ws, obj):
                     return
                 else:
                     tables[users[user].table].seats[users[user].seat] = None
-                    announce(obj['table'], {
+                    announce(users[user].table {
                         'verb': SIT,
-                        'seats': tables[obj['table']].seats
+                        'seats': tables[users[user].table].seats
                     })
             tables[users[user].table].view.remove(user)
         users[user].table = obj['table']
@@ -80,7 +80,7 @@ def operation(ws, obj):
             'verb': SIT,
             'seats': tables[obj['table']].seats
         })
-        
+
     elif obj['verb'] == READY:
         table = users[user].table
         if user not in tables[table].seats:
