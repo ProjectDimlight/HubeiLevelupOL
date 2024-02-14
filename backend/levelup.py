@@ -391,7 +391,7 @@ class Game:
     def value_of_card(self, card):
         c = self.deck.card(card)
         if c[1] == 'JOKER':
-            card = 100000
+            card += 100000
         elif c[1] == self.level:
             card = 10000
         elif c[1] == '2':
