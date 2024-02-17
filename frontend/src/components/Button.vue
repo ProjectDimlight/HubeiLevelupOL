@@ -1,5 +1,5 @@
 <template>
-  <div :class="'button ' + (able ? 'able' : '') " v-html="text">
+  <div :class="'button ' + (able ? 'able' : '') " :style="color ? 'background-color: ' + color : '' " v-html="text">
   </div>
 </template>
 
@@ -15,6 +15,7 @@ export default {
   },
   props: {
     text: String,
+    color: String,
     able: Boolean
   }
 }
@@ -24,7 +25,6 @@ export default {
 <style scoped>
 .button {
     padding: 3px 10px;
-    background-color: rgb(90, 90, 90);
     color: white;
     display: inline-block;
 }
@@ -35,7 +35,7 @@ export default {
 }
 
 .able:hover {
-    background-color: rgb(190, 255, 190);
+    background-color: rgb(210, 210, 210);
     color: black;
     transition: 0.7s;
 }

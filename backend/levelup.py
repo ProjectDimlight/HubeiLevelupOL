@@ -1,4 +1,5 @@
 import logging
+from threading import Event
 from essentials import Deck, wait
 
 REJECT = -1
@@ -38,6 +39,7 @@ class Game:
         self.round_score = 0
 
         self.stage = 0
+        self.event = Event()
 
     def game_play(self):
         self.stage = 1
@@ -117,11 +119,10 @@ class Game:
                     'player': player,
                     'card': card_id
                 })
-            else:
-                self.tell(i, {
-                    'verb': DRAW,
-                    'player': player
-                })
+        self.announce({
+            'verb': DRAW,
+            'player': player
+        })
 
     def declare(self, player, card_id):
         if card_id not in self.cards[player]:
@@ -330,25 +331,29 @@ class Game:
         })
 
     def reconnect(self, player):
-        self.tell(player, {
+        return {
             'verb': RECONNECT,
             'stage': self.stage,
-            'player': player,
+            'player': 0 if player == None else player,
             'level': self.level,
             'dealer': self.dealer,
             'color': self.color,
             'score': self.score,
             'round_winner': self.round_winner,
-            'cards': self.cards[player],
+            'cards': [] if player == None else self.cards[player],
             'round_cards': self.round_cards,
             'current_player': self.current_player,
             'cards_count': [len(i) for i in self.cards]
-        })
+        }
 
     def announce(self, obj):
+        if self.table == None:
+            return
         self.announce_callback(self.table, obj)
 
     def tell(self, player, obj):
+        if self.table == None:
+            return
         self.tell_callback(self.table, player, obj)
 
     def is_main_card(self, card_id):
@@ -446,6 +451,9 @@ class Game:
             else:
                 logging.info(log)
 
+
+    def stop(self):
+        self.table = None
 
 class Match:
     pass
