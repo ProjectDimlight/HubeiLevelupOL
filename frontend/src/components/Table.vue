@@ -16,7 +16,7 @@
         <div v-if="owner == username">
           庄家:
           <select id="dealer" v-model="create_dealer">
-            <option value="-1">抢叫</option>
+            <option :value="-1">抢叫</option>
             <option :key="index" v-for="(seat, index) in seats" :value="index">
               {{seat ? seat : "Bot" + index}}
             </option>
