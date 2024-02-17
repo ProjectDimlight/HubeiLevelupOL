@@ -33,7 +33,7 @@
       <div v-else>
         <img :src="image" /><br/>
         欢迎来到升级大战OL！<br/>
-        点击左侧问号查看说明。<br/>
+        点击侧边问号查看说明。<br/>
         开源链接：<a href="https://github.com/ProjectDimlight/HubeiLevelupOL">HubeiLevelupOL</a>
       </div>
       <div style="margin-top: 30px;">
