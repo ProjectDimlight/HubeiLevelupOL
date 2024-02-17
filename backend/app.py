@@ -43,7 +43,8 @@ class User:
 def run_game(game):
     tables[game.table].game = game
     game.game_play()
-    tables[game.table].game = None
+    if game.table:
+        tables[game.table].game = None
 
 def leave_table(user):
     tables[users[user].table].view.remove(user)
