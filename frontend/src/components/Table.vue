@@ -4,7 +4,7 @@
       <div style="border-bottom: 1px solid grey; margin-bottom: 20px;">
         用户名: <input type="text" id="username" v-model="username" />
         桌号： <input type="text" id="table" v-model="table" />
-        <Button style="margin-left: 20px" v-on:click="sit(-1)" :able="true" :text="'Enter'"/>
+        <Button style="margin-left: 20px" v-on:click="sit(-1)" :able="true" :text="'上桌'"/>
       </div>
       <div v-if="owner != ''">
         <div> 桌主: {{owner}} </div>
@@ -27,7 +27,7 @@
               {{level}}
             </option>
           </select>
-          <Button style="margin-left: 20px" v-on:click="button()" :able="true" :text="'Start'"/>
+          <Button style="margin-left: 20px" v-on:click="button()" :able="true" :text="'开局'"/>
         </div>
       </div>
       <div v-else>
@@ -162,7 +162,7 @@ export default {
       round_cards: [[], [], [], []],
       bottom: [],
 
-      stages: ['ready', 'declare', 'bottom', 'play', 'end'],
+      stages: ['准备', '叫牌', '扣牌', '出牌', '退出'],
       stage: 0,
       chosen: new Set([]),
       sock: null,
@@ -363,7 +363,7 @@ export default {
         self.color = card_info.colors.indexOf(obj['color'])
         self.dealer = obj['dealer']
       } else if (obj['verb'] == DRAW) {
-        if (obj['card']) {
+        if ('card' in obj) {
           self.cards.push(obj['card'])
         } else {
           self.cards_count[obj['player']]++
@@ -375,6 +375,7 @@ export default {
         self.stage = 2
       } else if (obj['verb'] == ACK) {
         self.cards = self.cards.filter(e => !obj['bottom'].includes(e))
+        self.bottom = obj['bottom']
       } else if (obj['verb'] == PLAY) {
         self.stage = 3
         self.round_cards = obj['round_cards']

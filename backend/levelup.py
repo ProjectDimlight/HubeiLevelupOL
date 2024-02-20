@@ -112,13 +112,11 @@ class Game:
 
     def deal_card_to_player(self, player, card_id):
         self.cards[player].append(card_id)
-        for i in range(4):
-            if i == player:
-                self.tell(i, {
-                    'verb': DRAW,
-                    'player': player,
-                    'card': card_id
-                })
+        self.tell(player, {
+            'verb': DRAW,
+            'player': player,
+            'card': card_id
+        })
         self.announce({
             'verb': DRAW,
             'player': player
